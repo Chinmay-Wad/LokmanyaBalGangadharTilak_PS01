@@ -1,0 +1,15 @@
+<link rel="stylesheet" href="/static/style.css">
+
+<div class="container">
+
+<h2>🧑 Patient Records</h2>
+
+{% for r in records %}
+<div class="card">
+<b>📝 Raw:</b> {{ r.raw_text }} <br><br>
+<b>💊 Extracted:</b>
+<pre>{{ r.extracted }}</pre>
+</div>
+{% endfor %}
+
+</div>
