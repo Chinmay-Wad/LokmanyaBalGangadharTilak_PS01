@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>💊 Medication Extractor Pro</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+
+    <!-- Google font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- Logo -->
+    <div class="logo">
+        💊 MedExtractor Pro
+    </div>
+
+    <p class="subtitle">
+        E-Prescription / EHR Input  
+        <br>
+        Paste text or upload a <b>.txt</b> file to extract medication details ⚡
+    </p>
+
+
+    <!-- INPUT CARD -->
+    <div class="card">
+
+        <!-- Text area -->
+        <textarea id="textArea"
+        placeholder="Example:
+Tab Paracetamol 500mg BD x 5d + Inj Ceftriaxone 1g IV OD">
+        </textarea>
+
+        <!-- Upload -->
+        <label class="upload-btn">
+            📂 Upload .txt file
+            <input type="file" id="fileInput" accept=".txt" hidden>
+        </label>
+
+        <!-- Extract button -->
+        <button onclick="extractData()">🔍 Extract Medications</button>
+
+    </div>
+
+
+    <!-- FILTER -->
+    <input id="filter" placeholder="🔎 Filter by drug name..." onkeyup="filterTable()">
+
+
+
+    <!-- OUTPUT TABLE -->
+    <div class="card">
+
+        <table id="resultTable">
+
+            <thead>
+                <tr>
+                    <th>💊 Drug</th>
+                    <th>⚡ Strength</th>
+                    <th>📦 Form</th>
+                    <th>➡ Route</th>
+                    <th>⏰ Frequency</th>
+                    <th>📅 Duration</th>
+                </tr>
+            </thead>
+
+            <tbody></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+/////////////////////////////////////////////////////
+// Upload file → load into textarea
+/////////////////////////////////////////////////////
+document.getElementById("fileInput").addEventListener("change", function(e) {
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+        document.getElementById("textArea").value = event.target.result;
+    };
+
+    reader.readAsText(file);
+});
+
+
+
+/////////////////////////////////////////////////////
+// Extract API call
+/////////////////////////////////////////////////////
+async function extractData() {
+
+    const text = document.getElementById("textArea").value;
+
+    if (!text.trim()) {
+        alert("Please paste prescription text first!");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("text", text);
+
+    const response = await fetch("/api/extract", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await response.json();
+
+    const tbody = document.querySelector("#resultTable tbody");
+    tbody.innerHTML = "";
+
+    data.medications.forEach(m => {
+
+        const row = `
+        <tr>
+            <td>${m.drug_name || "-"}</td>
+            <td>${m.strength || "-"}</td>
+            <td>${m.form || "-"}</td>
+            <td>${m.route || "-"}</td>
+            <td>${m.frequency || "-"}</td>
+            <td>${m.duration || "-"}</td>
+        </tr>
+        `;
+
+        tbody.innerHTML += row;
+    });
+}
+
+
+
+/////////////////////////////////////////////////////
+// Filter search
+/////////////////////////////////////////////////////
+function filterTable() {
+
+    const value = document.getElementById("filter").value.toLowerCase();
+
+    document.querySelectorAll("#resultTable tbody tr").forEach(row => {
+
+        row.style.display =
+            row.innerText.toLowerCase().includes(value) ? "" : "none";
+    });
+}
+
+</script>
+
+
+</body>
+</html>
